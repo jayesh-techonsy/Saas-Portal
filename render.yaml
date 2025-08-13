@@ -3,7 +3,7 @@ services:
   - type: web
     name: saas-backend
     runtime: python3
-    buildCommand: "cd saas-backend && pip install -r requirements.txt"
+    buildCommand: "cd saas-backend && pip install -r requirements-minimal.txt"
     startCommand: "cd saas-backend && chmod +x start.sh && ./start.sh"
     plan: free
     healthCheckPath: /health
