@@ -52,8 +52,7 @@ const IssuesList = () => {
           issue.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           issue.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           issue.raised_by?.toLowerCase().includes(searchTerm.toLowerCase())
- netstat -ano | findstr :5173
-     );
+      );
     }
 
     // Status filter
