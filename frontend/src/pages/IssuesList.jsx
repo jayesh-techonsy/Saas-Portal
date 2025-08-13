@@ -2,96 +2,127 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
 import { API_BASE_URL } from "../config/api";
- import { FiUsers,
+import {
+  FiAlertTriangle,
   FiRefreshCw,
   FiSearch,
   FiFilter,
-  FiUser,
   FiEye,
+  FiClock,
+  FiCheckCircle,
 } from "react-icons/fi";
 
-const EmployeePool = () => {
-  const [employeeData, setEmployeeData] = useState([]);
+const IssuesList = () => {
+  const [issuesData, setIssuesData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
 
-  const fetchEmployeePool = async () => {
+  const fetchIssues = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/api/employee/pool`
+        `${API_BASE_URL}/api/support/get-issues`
       );
-      setEmployeeData(response.data.employees);
-      setFilteredData(response.data.employees);
-      //   toast.success("Employee data refreshed successfully");
+      setIssuesData(response.data.data || []);
+      setFilteredData(response.data.data || []);
+      //   toast.success("Issues refreshed successfully");
     } catch (error) {
-      console.error("Error fetching employee data:", error);
-      toast.error("Failed to fetch employee data");
+      console.error("Error fetching issues:", error);
+      toast.error("Failed to fetch issues");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmployeePool();
+    fetchIssues();
   }, []);
 
   useEffect(() => {
-    let filtered = employeeData;
+    let filtered = issuesData;
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
-        (emp) =>
-          emp.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          emp.iqama_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          emp.registered_employee
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+        (issue) =>
+          issue.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          issue.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          issue.raised_by?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Status filter
     if (statusFilter !== "all") {
-      filtered = filtered.filter((emp) => {
-        if (statusFilter === "active") {
-          return emp.gosi_status === "Active" && emp.hrsd_status === "Active";
-        } else if (statusFilter === "inactive") {
-          return emp.gosi_status !== "Active" || emp.hrsd_status !== "Active";
+      filtered = filtered.filter((issue) => {
+        if (statusFilter === "open") {
+          return issue.status === "Open";
+        } else if (statusFilter === "closed") {
+          return issue.status === "Closed";
         }
         return true;
       });
     }
 
     setFilteredData(filtered);
-  }, [searchTerm, statusFilter, employeeData]);
+  }, [searchTerm, statusFilter, issuesData]);
 
-  const handleRowClick = (iqamaNumber) => {
-    if (iqamaNumber) {
-      navigate(`/employee/${iqamaNumber}`);
+  const handleRowClick = (issueId) => {
+    if (issueId) {
+      navigate(`/support/issue/${issueId}`);
     } else {
-      toast.warning("Iqama number not available");
+      toast.warning("Issue ID not available");
     }
   };
 
   const getStatusBadge = (status) => {
-    const isActive = status === "Active";
+    const statusMap = {
+      Open: { color: "orange", icon: <FiClock className="w-3 h-3 mr-1" /> },
+      Closed: {
+        color: "green",
+        icon: <FiCheckCircle className="w-3 h-3 mr-1" />,
+      },
+      High: {
+        color: "red",
+        icon: <FiAlertTriangle className="w-3 h-3 mr-1" />,
+      },
+      Medium: { color: "yellow", icon: null },
+      Low: { color: "blue", icon: null },
+    };
+
+    const statusInfo = statusMap[status] || { color: "gray", icon: null };
+
     return (
       <span
-        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-          isActive
+        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+          statusInfo.color === "orange"
+            ? "bg-orange-100 text-orange-700 border border-orange-200"
+            : statusInfo.color === "green"
             ? "bg-green-100 text-green-700 border border-green-200"
-            : "bg-red-100 text-red-700 border border-red-200"
+            : statusInfo.color === "red"
+            ? "bg-red-100 text-red-700 border border-red-200"
+            : statusInfo.color === "yellow"
+            ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+            : "bg-gray-100 text-gray-700 border border-gray-200"
         }`}
       >
+        {statusInfo.icon}
         {status || "Unknown"}
       </span>
     );
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -100,20 +131,20 @@ const EmployeePool = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-heading-1 text-slate-800 flex items-center gap-3">
-            <FiUsers className="w-8 h-8 text-blue-600" />
-            Employee Pool
+            <FiAlertTriangle className="w-8 h-8 text-blue-600" />
+            Support Issues
           </h1>
           <p className="text-slate-600 mt-1">
-            Manage and view all employee records
+            View and manage all support tickets
           </p>
         </div>
         <button
-          onClick={fetchEmployeePool}
+          onClick={fetchIssues}
           disabled={loading}
           className="btn-primary flex items-center gap-2"
         >
           <FiRefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh Data
+          Refresh Issues
         </button>
       </div>
 
@@ -125,7 +156,7 @@ const EmployeePool = () => {
               {/* <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" /> */}
               <input
                 type="text"
-                placeholder="Search by name, ID, or Iqama number..."
+                placeholder="Search by subject, ID, or raised by..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -134,34 +165,34 @@ const EmployeePool = () => {
           </div>
           <div className="sm:w-48">
             <div className="relative">
-              <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              {/* <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" /> */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="input-field pl-10 appearance-none"
               >
                 <option value="all">All Status</option>
-                <option value="active">Active Only</option>
-                <option value="inactive">Inactive Only</option>
+                <option value="open">Open Only</option>
+                <option value="closed">Closed Only</option>
               </select>
             </div>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-4 text-sm text-slate-600">
-          <span>Total: {employeeData.length}</span>
+          <span>Total: {issuesData.length}</span>
           <span>•</span>
           <span>Filtered: {filteredData.length}</span>
         </div>
       </div>
 
-      {/* Employee Table */}
+      {/* Issues Table */}
       <div className="card">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="flex items-center gap-3 text-slate-600">
               <div className="loading-spinner"></div>
-              <span>Loading employee data...</span>
+              <span>Loading issues data...</span>
             </div>
           </div>
         ) : (
@@ -171,22 +202,22 @@ const EmployeePool = () => {
                 <thead className="table-header">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      #
+                      ID
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      Employee Details
+                      Subject
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      Employee ID
+                      Raised By
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      Iqama Number
+                      Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      GOSI Status
+                      Priority
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      HRSD Status
+                      Created On
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       Actions
@@ -194,51 +225,42 @@ const EmployeePool = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredData.map((emp, index) => (
+                  {filteredData.map((issue, index) => (
                     <tr
                       key={index}
-                      className="table-row cursor-pointer"
-                      onClick={() => handleRowClick(emp.iqama_number)}
+                      className="table-row cursor-pointer hover:bg-slate-50"
+                      onClick={() => handleRowClick(issue.name)}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-slate-800">
-                        {index + 1}
+                        <span className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">
+                          {issue.name || "—"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
-                            <FiUser className="w-5 h-5 text-slate-500" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-slate-800">
-                              {emp.full_name || "—"}
-                            </div>
-                            <div className="text-sm text-slate-500">
-                              Employee Record
-                            </div>
-                          </div>
+                        <div className="font-medium text-slate-800">
+                          {issue.subject || "—"}
+                        </div>
+                        <div className="text-sm text-slate-500 truncate max-w-xs">
+                          {issue.issue_type || "No type specified"}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-800">
-                        <span className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">
-                          {emp.registered_employee || "—"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-800">
-                        <span className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">
-                          {emp.iqama_number || "—"}
-                        </span>
+                        {issue.custom_employee_name || "—"}
                       </td>
                       <td className="px-6 py-4">
-                        {getStatusBadge(emp.gosi_status)}
+                        {getStatusBadge(issue.status)}
                       </td>
                       <td className="px-6 py-4">
-                        {getStatusBadge(emp.hrsd_status)}
+                        {getStatusBadge(issue.priority)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {formatDate(issue.opening_date)}
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRowClick(emp.iqama_number);
+                            handleRowClick(issue.name);
                           }}
                           className="btn-ghost p-2"
                           title="View Details"
@@ -254,14 +276,14 @@ const EmployeePool = () => {
 
             {filteredData.length === 0 && !loading && (
               <div className="text-center py-12">
-                <FiUsers className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <FiAlertTriangle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-slate-800 mb-2">
-                  No employees found
+                  No issues found
                 </h3>
                 <p className="text-slate-600">
                   {searchTerm || statusFilter !== "all"
                     ? "Try adjusting your search or filter criteria."
-                    : "No employee data available at the moment."}
+                    : "No issues have been reported yet."}
                 </p>
               </div>
             )}
@@ -272,4 +294,4 @@ const EmployeePool = () => {
   );
 };
 
-export default EmployeePool;
+export default IssuesList;

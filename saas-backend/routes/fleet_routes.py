@@ -1,86 +1,20 @@
-# from fastapi import APIRouter, UploadFile, File, HTTPException
-# import requests
-# import urllib3
-
-# router = APIRouter()
-
-# ERP_BASE_URL = "https://admin.mdm-wassal.shop"
-# ERP_API_KEY = "6de84885d8b9c82"
-# ERP_API_SECRET = "87b5b42f077d6c4"
-
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# @router.post("/upload-and-import-vehicle")
-# async def upload_and_import_vehicle(file: UploadFile = File(...)):
-#     try:
-#         # Step 1: Upload file to ERPNext
-#         file_content = await file.read()
-#         files = {
-#             "file": (file.filename, file_content, file.content_type)
-#         }
-
-#         headers = {
-#             "Authorization": f"token {ERP_API_KEY}:{ERP_API_SECRET}"
-#         }
-
-#         upload_response = requests.post(
-#             f"{ERP_BASE_URL}/api/method/upload_file",
-#             headers=headers,
-#             files=files,
-#             verify=False
-#         )
-
-#         if upload_response.status_code != 200:
-#             raise HTTPException(status_code=upload_response.status_code, detail=f"Upload Failed: {upload_response.text}")
-
-#         upload_data = upload_response.json().get("message", {})
-#         file_url = upload_data.get("file_url")
-
-#         if not file_url:
-#             raise HTTPException(status_code=500, detail="file_url not found in upload response")
-
-#         # Step 2: Import vehicle data using uploaded file
-#         import_payload = {
-#             "file_url": file_url
-#         }
-
-#         import_response = requests.post(
-#             f"{ERP_BASE_URL}/api/method/fleet_management.api.vehicle_import.import_vehicle_data",
-#             headers=headers,
-#             json=import_payload,
-#             verify=False
-#         )
-
-#         if import_response.status_code != 200:
-#             raise HTTPException(status_code=import_response.status_code, detail=f"Import Failed: {import_response.text}")
-
-#         return {
-#             "message": "✅ Vehicle file uploaded and imported successfully",
-#             "file_url": file_url,
-#             "import_response": import_response.json()
-#         }
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"❌ Error: {str(e)}")
-
-
 from fastapi import APIRouter, UploadFile, File, HTTPException, Body
 import requests
 import urllib3
+from settings import settings
 
 router = APIRouter()
 
-ERP_BASE_URL = "https://admin.mdm-wassal.shop"
-ERP_API_KEY = "2539d59d764379a"
-ERP_API_SECRET = "4d7c86a115d4e1b" 
-# "e81565ed52ccf1e"
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+ERP_BASE_URL = settings.ERP_BASE_URL
+ERP_API_TOKEN = settings.ERP_API_TOKEN
+
+ERP_API_KEY, ERP_API_SECRET = ERP_API_TOKEN.split(":")
 
 @router.post("/upload-and-import-vehicle")
 async def upload_and_import_vehicle(file: UploadFile = File(...)):
     try:
-        # Step 1: Upload file to ERPNext
         file_content = await file.read()
         files = {
             "file": (file.filename, file_content, file.content_type)
@@ -106,11 +40,7 @@ async def upload_and_import_vehicle(file: UploadFile = File(...)):
         if not file_url:
             raise HTTPException(status_code=500, detail="file_url not found in upload response")
 
-        # Step 2: Import vehicle data from uploaded file
-        import_payload = {
-            "file_url": file_url
-        }
-
+        import_payload = {"file_url": file_url}
         import_response = requests.post(
             f"{ERP_BASE_URL}/api/method/fleet_management.api.vehicle_import.import_vehicle_data",
             headers=headers,
@@ -121,7 +51,6 @@ async def upload_and_import_vehicle(file: UploadFile = File(...)):
         if import_response.status_code != 200:
             raise HTTPException(status_code=import_response.status_code, detail=f"Import Failed: {import_response.text}")
 
-        # Step 3: Transfer to core ERPNext Vehicle Doctype
         transfer_response = requests.post(
             f"{ERP_BASE_URL}/api/method/fleet_management.api.vehicle_import.transfer_to_vehicle",
             headers=headers,
@@ -142,8 +71,6 @@ async def upload_and_import_vehicle(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"❌ Error: {str(e)}")
 
 
-
-
 arabic_to_english_map = {
     "ا": "A", "ب": "B", "ح": "J", "د": "D", "ر": "R",
     "س": "S", "ص": "X", "ط": "T", "ع": "E", "ق": "G",
@@ -152,6 +79,7 @@ arabic_to_english_map = {
     "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
     "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
 }
+
 
 def normalize_arabic(text):
     return text.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
@@ -181,6 +109,7 @@ def get_employee_name(employee_id):
         return ""
     return ""
 
+
 @router.get("/vehicles")
 def get_all_vehicles_with_translation():
     try:
@@ -208,7 +137,7 @@ def get_all_vehicles_with_translation():
                 break
 
             all_vehicles.extend(vehicles)
-            start += limit  # Move to next page
+            start += limit
 
         result = []
         for v in all_vehicles:
@@ -232,7 +161,6 @@ def get_all_vehicles_with_translation():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Route 1 - Update employee on vehicle
 @router.post("/update-vehicle-employee")
 def update_vehicle_employee(license_plate: str, employee: str):
     try:
@@ -253,7 +181,6 @@ def update_vehicle_employee(license_plate: str, employee: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Route 2 - Get employee list
 @router.get("/employees")
 def get_employees():
     try:
@@ -269,3 +196,105 @@ def get_employees():
             raise HTTPException(status_code=500, detail="Failed to fetch employees")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/upload-and-import-gosi")
+async def upload_and_import_gosi(file: UploadFile = File(...)):
+    try:
+        # 📥 Step 1: Read File
+        file_content = await file.read()
+        files = {
+            "file": (file.filename, file_content, file.content_type)
+        }
+
+        headers = {
+            "Authorization": f"token {ERP_API_KEY}:{ERP_API_SECRET}"
+        }
+
+        # ⬆️ Step 2: Upload to ERPNext
+        upload_response = requests.post(
+            f"{ERP_BASE_URL}/api/method/upload_file",
+            headers=headers,
+            files=files,
+            verify=False
+        )
+
+        if upload_response.status_code != 200:
+            raise HTTPException(status_code=upload_response.status_code, detail=f"Upload Failed: {upload_response.text}")
+
+        upload_data = upload_response.json().get("message", {})
+        file_url = upload_data.get("file_url")
+
+        if not file_url:
+            raise HTTPException(status_code=500, detail="file_url not found in upload response")
+
+        # 🚀 Step 3: Trigger GOSI Import Script
+        import_response = requests.post(
+            f"{ERP_BASE_URL}/api/method/hr_customization.api.gosi.import_gosi_worker_data",
+            headers=headers,
+            json={"file_url": file_url},
+            verify=False
+        )
+
+        if import_response.status_code != 200:
+            raise HTTPException(status_code=import_response.status_code, detail=f"Import Failed: {import_response.text}")
+
+        return {
+            "message": "✅ GOSI file uploaded and imported successfully",
+            "file_url": file_url,
+            "import_response": import_response.json()
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"❌ Error: {str(e)}")
+
+
+@router.post("/upload-and-import-worker")
+async def upload_and_import_worker(file: UploadFile = File(...)):
+    try:
+        file_content = await file.read()
+        files = {
+            "file": (file.filename, file_content, file.content_type)
+        }
+
+        headers = {
+            "Authorization": f"token {ERP_API_KEY}:{ERP_API_SECRET}"
+        }
+
+        # Step 1: Upload the file
+        upload_response = requests.post(
+            f"{ERP_BASE_URL}/api/method/upload_file",
+            headers=headers,
+            files=files,
+            verify=False
+        )
+
+        if upload_response.status_code != 200:
+            raise HTTPException(status_code=upload_response.status_code, detail=f"Upload Failed: {upload_response.text}")
+
+        upload_data = upload_response.json().get("message", {})
+        file_url = upload_data.get("file_url")
+
+        if not file_url:
+            raise HTTPException(status_code=500, detail="file_url not found in upload response")
+
+        # Step 2: Trigger Worker Data Import
+        import_response = requests.post(
+            f"{ERP_BASE_URL}/api/method/hr_customization.api.import_worker.import_worker_data",
+            headers=headers,
+            json={"file_url": file_url},
+            verify=False
+        )
+
+        if import_response.status_code != 200:
+            raise HTTPException(status_code=import_response.status_code, detail=f"Import Failed: {import_response.text}")
+
+        return {
+            "message": "✅ Worker data uploaded and imported successfully",
+            "file_url": file_url,
+            "import_response": import_response.json()
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"❌ Error: {str(e)}")

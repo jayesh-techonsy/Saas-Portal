@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { API_BASE_URL } from "../config/api";
 const RemoteApps = () => {
   const [remoteApps, setRemoteApps] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -9,7 +10,7 @@ const RemoteApps = () => {
   const fetchRemoteApps = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8000/api/app/remote-apps");
+      const res = await axios.get(`${API_BASE_URL}/api/app/remote-apps`);
       setRemoteApps(res.data.apps);
     } catch (err) {
       toast.error("Failed to fetch remote apps list");

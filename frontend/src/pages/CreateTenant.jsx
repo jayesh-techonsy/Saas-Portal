@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { API_BASE_URL } from "../config/api";
 const CreateTenant = () => {
   const [tenantURL, setTenantURL] = useState("");
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,7 @@ const CreateTenant = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/sites/create-tenant"
+        `${API_BASE_URL}/api/sites/create-tenant`
       );
       setTenantURL(res.data.tenantURL);
       toast.success("Tenant created successfully!");

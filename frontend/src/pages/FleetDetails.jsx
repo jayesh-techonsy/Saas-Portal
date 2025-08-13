@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
+import { API_BASE_URL } from "../config/api";
 const FleetDetails = () => {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
@@ -63,47 +64,9 @@ const FleetDetails = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleUpload = async () => {
-    if (!file) return toast.error("📂 No file selected!");
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      toast.info("⏳ Uploading and importing vehicle data...");
-
-      const response = await axios.post(
-        "http://localhost:8000/api/fleet/upload-and-import-vehicle",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      toast.success("✅ Vehicle data uploaded, imported & transferred!");
-      console.log("Server Response:", response.data);
-      fetchVehicleData(); // Refresh after upload
-    } catch (err) {
-      console.error("Upload error:", err);
-      toast.error(
-        err.response?.data?.detail ||
-          "❌ Upload or import failed. Check backend logs."
-      );
-    }
-  };
-
-  const removeFile = () => {
-    setFile(null);
-    setPreviewData([]);
-    setHeaders([]);
-    setShowModal(false);
-  };
-
   const fetchVehicleData = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/fleet/vehicles");
+      const res = await axios.get(`${API_BASE_URL}/api/fleet/vehicles`);
       setVehicleData(res.data.vehicles || []);
     } catch (error) {
       toast.error("Failed to fetch vehicle data.");
@@ -113,7 +76,7 @@ const FleetDetails = () => {
 
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/fleet/employees");
+      const res = await axios.get(`${API_BASE_URL}/api/fleet/employees`);
       setEmployees(res.data || []);
     } catch (error) {
       toast.error("Failed to fetch employees.");
@@ -124,7 +87,7 @@ const FleetDetails = () => {
   const handleEmployeeUpdate = async (licensePlate, newEmployee) => {
     try {
       await axios.post(
-        "http://localhost:8000/api/fleet/update-vehicle-employee",
+        `${API_BASE_URL}/api/fleet/update-vehicle-employee`,
         null,
         {
           params: {
@@ -146,80 +109,115 @@ const FleetDetails = () => {
   }, []);
 
   return (
-    <div className="min-h-[66vh] p-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl p-6 shadow space-y-6">
-        <h2 className="text-2xl font-bold text-gray-800">Fleet Management</h2>
-
-        {/* Dropzone */}
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${
-            isDragActive
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 bg-gray-50"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <FaUpload className="text-3xl text-blue-600" />
-            <p className="text-gray-600">
-              {isDragActive
-                ? "Drop the file here..."
-                : "Drag and drop your Excel file here or click to upload"}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-heading-1 text-slate-800">Fleet Management</h1>
+          <p className="text-slate-600 mt-1">
+            Manage your vehicle fleet and employee assignments
+          </p>
         </div>
-
-        {/* File Info */}
-        {file && (
-          <div className="bg-gray-100 border rounded-lg px-4 py-3 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <FaFileExcel className="text-green-600" />
-              <span className="text-gray-800 font-medium">{file.name}</span>
-            </div>
-            <button onClick={removeFile}>
-              <FaTimes className="text-red-500 hover:text-red-700 transition" />
-            </button>
-          </div>
-        )}
-
-        {/* Buttons */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={handlePreview}
             disabled={!file}
-            className="bg-yellow-100 text-yellow-700 px-5 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-200 transition"
+            className={`btn-secondary ${
+              !file ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
+            <FaFileExcel className="w-4 h-4 mr-2" />
             Preview Data
           </button>
-          <button
-            onClick={handleUpload}
-            disabled={!file}
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-          >
-            Import & Update
-          </button>
+        </div>
+      </div>
+
+      {/* Upload Section
+      <div className="card p-6">
+        <h2 className="text-heading-3 text-slate-800 mb-4">
+          Import Vehicle Data
+        </h2>
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+            isDragActive
+              ? "border-blue-400 bg-blue-50"
+              : "border-slate-300 hover:border-blue-400 hover:bg-slate-50"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <FaUpload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          {isDragActive ? (
+            <p className="text-blue-600 font-medium">
+              Drop the Excel file here...
+            </p>
+          ) : (
+            <div>
+              <p className="text-slate-700 font-medium mb-2">
+                Drag & drop an Excel file here, or click to select
+              </p>
+              <p className="text-sm text-slate-500">
+                Supports .xlsx files only
+              </p>
+            </div>
+          )}
+          {file && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg inline-block">
+              <p className="text-green-700 text-sm font-medium">
+                ✓ {file.name} selected
+              </p>
+            </div>
+          )}
+        </div>
+      </div> */}
+
+      {/* Fleet Table */}
+      <div className="card">
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-heading-3 text-slate-800">Vehicle Fleet</h2>
+              <p className="text-sm text-slate-600 mt-1">
+                {vehicleData.length} vehicles total
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-auto rounded-2xl shadow-sm border border-gray-200">
-          <table className="min-w-full text-sm text-left text-gray-800">
-            <thead className="bg-gray-50 text-gray-700 text-sm uppercase tracking-wide">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="table-header">
               <tr>
-                <th className="px-4 py-3">Sr. No.</th>
-                <th className="px-4 py-3">Arabic Plate</th>
-                <th className="px-4 py-3">English Plate</th>
-                <th className="px-4 py-3">Employee</th>
-                <th className="px-4 py-3">License Expiry</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  #
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Arabic Plate
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  English Plate
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Assigned Employee
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  License Expiry
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {vehicleData.slice(0, visibleCount).map((item, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">{index + 1}</td>
-                  <td className="px-4 py-2">{item.license_plate_ar}</td>
-                  <td className="px-4 py-2">{item.license_plate_en}</td>
-                  <td className="px-4 py-2">
+                <tr key={index} className="table-row">
+                  <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                    {index + 1}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-800">
+                    <div className="font-medium">{item.license_plate_ar}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-800">
+                    <div className="font-medium">{item.license_plate_en}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
                     <select
                       value={item.employee_id || ""}
                       onChange={(e) =>
@@ -228,9 +226,9 @@ const FleetDetails = () => {
                           e.target.value
                         )
                       }
-                      className="border rounded px-2 py-1"
+                      className="input-field py-2 text-sm min-w-[200px]"
                     >
-                      <option value="">Unassigned</option>
+                      <option value="">Select Employee</option>
                       {employees.map((emp) => (
                         <option key={emp.name} value={emp.name}>
                           {emp.employee_name}
@@ -238,79 +236,105 @@ const FleetDetails = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-2">{item.license_expiry_date}</td>
+                  <td className="px-6 py-4 text-sm">
+                    {item.license_expiry_date ? (
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                          new Date(item.license_expiry_date) < new Date()
+                            ? "bg-red-100 text-red-700"
+                            : new Date(item.license_expiry_date) <
+                              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {item.license_expiry_date}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">Not set</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Load More */}
-        {vehicleData.length > 20 && (
-          <div className="flex justify-center pt-4">
-            {visibleCount < vehicleData.length ? (
-              <button
-                onClick={() => setVisibleCount(visibleCount + 20)}
-                className="bg-gray-200 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition"
-              >
-                Load More
-              </button>
-            ) : (
-              <button
-                onClick={() => setVisibleCount(10)}
-                className="bg-gray-200 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition"
-              >
-                View Less
-              </button>
-            )}
+        {/* Pagination */}
+        {vehicleData.length > 10 && (
+          <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+            <div className="text-sm text-slate-600">
+              Showing {Math.min(visibleCount, vehicleData.length)} of{" "}
+              {vehicleData.length} vehicles
+            </div>
+            <div className="flex gap-2">
+              {visibleCount < vehicleData.length ? (
+                <button
+                  onClick={() => setVisibleCount(visibleCount + 20)}
+                  className="btn-secondary"
+                >
+                  Load More
+                </button>
+              ) : (
+                <button
+                  onClick={() => setVisibleCount(10)}
+                  className="btn-secondary"
+                >
+                  Show Less
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Preview Modal */}
       {showModal && (
-        <div className="absolute bg-opacity-100 top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="bg-white w-[90vw] max-w-6xl max-h-[70vh] overflow-auto rounded-xl shadow-lg relative border">
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">
+        <div className="modal-overlay">
+          <div className="modal-content max-w-6xl w-full max-h-[80vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <h3 className="text-heading-3 text-slate-800">
                 Preview Vehicle Data
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors duration-200"
               >
-                <FaTimes size={18} />
+                <FaTimes className="w-5 h-5 text-slate-500" />
               </button>
             </div>
-            <div className="overflow-auto px-6 pb-6">
-              <table className="w-full text-sm text-left text-gray-700 border border-gray-200">
-                <thead className="bg-gray-100 text-gray-900 sticky top-0 z-10">
-                  <tr>
-                    {headers.map((header, index) => (
-                      <th
-                        key={index}
-                        className="px-3 py-2 border whitespace-nowrap"
-                      >
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewData.map((row, rowIndex) => (
-                    <tr key={rowIndex} className="hover:bg-gray-50">
-                      {headers.map((header, colIndex) => (
-                        <td
-                          key={colIndex}
-                          className="px-3 py-1 border whitespace-nowrap"
+
+            <div className="p-6 overflow-auto custom-scrollbar max-h-[60vh]">
+              <div className="overflow-x-auto">
+                <table className="w-full border border-slate-200 rounded-lg">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      {headers.map((header, index) => (
+                        <th
+                          key={index}
+                          className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-200"
                         >
-                          {row[header]}
-                        </td>
+                          {header}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {previewData.map((row, rowIndex) => (
+                      <tr key={rowIndex} className="hover:bg-slate-50">
+                        {headers.map((header, colIndex) => (
+                          <td
+                            key={colIndex}
+                            className="px-4 py-3 text-sm text-slate-800 whitespace-nowrap"
+                          >
+                            {row[header]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

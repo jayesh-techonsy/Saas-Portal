@@ -1,0 +1,50 @@
+services:
+  # Backend API Service
+  - type: web
+    name: saas-backend
+    runtime: python3
+    buildCommand: "cd saas-backend && pip install -r requirements.txt"
+    startCommand: "cd saas-backend && chmod +x start.sh && ./start.sh"
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: SUPABASE_DB_HOST
+        sync: false
+      - key: SUPABASE_DB_PORT
+        value: "5432"
+      - key: SUPABASE_DB_NAME
+        sync: false
+      - key: SUPABASE_DB_USER
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      - key: ERP_WALLET_API
+        sync: false
+      - key: ERP_API_TOKEN
+        sync: false
+      - key: ERP_BASE_URL
+        sync: false
+      - key: SSH_HOSTNAME
+        sync: false
+      - key: SSH_USERNAME
+        sync: false
+      - key: SSH_KEY_PATH
+        sync: false
+      - key: DOCKER_CONTAINER_NAME
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  # Frontend Static Site
+  - type: static
+    name: saas-frontend
+    buildCommand: "cd frontend && npm ci && npm run build"
+    staticPublishPath: frontend/dist
+    plan: free
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false

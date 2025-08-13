@@ -40,7 +40,7 @@
 //   const handleSubscribeClick = async () => {
 //     setSubscribeLoading(true);
 //     try {
-//       const res = await axios.get("http://localhost:8000/api/wallets/plans");
+//       const res = await axios.get(`${API_BASE_URL}/api/wallets/plans`);
 //       setPlans(res.data.plans || []);
 //       setShowPlanDropdown(true);
 //     } catch (error) {
@@ -241,7 +241,7 @@ const WalletSection = ({
   const handlePlanClick = async () => {
     setSubscribeLoading(true);
     try {
-      const res = await axios.get("http://localhost:8000/api/wallets/plans");
+      const res = await axios.get(`${API_BASE_URL}/api/wallets/plans`);
       const all = res.data.plans || [];
 
       // If user has a subscription, only show upgrade plans

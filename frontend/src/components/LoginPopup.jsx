@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../config/api";
 
 const LoginPopup = ({ setShowLogin }) => {
   const [mode, setMode] = useState("login");
@@ -27,7 +28,7 @@ const LoginPopup = ({ setShowLogin }) => {
 
     try {
       if (mode === "login") {
-        const res = await axios.post("http://localhost:8000/auth/login", {
+        const res = await axios.post(`${API_BASE_URL}/auth/login`, {
           email,
           password,
         });
@@ -44,7 +45,7 @@ const LoginPopup = ({ setShowLogin }) => {
         setShowLogin(false);
         navigate("/");
       } else {
-        await axios.post("http://localhost:8000/auth/signup", {
+        await axios.post(`${API_BASE_URL}/auth/signup`, {
           full_name: fullName,
           email,
           password,
@@ -60,7 +61,7 @@ const LoginPopup = ({ setShowLogin }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-white rounded-2xl shadow-lg w-[90%] max-w-md p-6 relative">
         <button
           className="absolute top-3 right-4 text-xl text-gray-700 hover:text-red-500"

@@ -117,7 +117,7 @@ const SubscriptionCard = ({ subscription, siteId, fetchSiteDetails }) => {
   const handleUpgradeClick = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8000/api/wallets/plans");
+      const res = await axios.get(`${API_BASE_URL}/api/wallets/plans`);
       const plans = res.data.plans || [];
       const upgrades = plans.filter((plan) => plan.price > subscription.price);
       setUpgradePlans(upgrades);

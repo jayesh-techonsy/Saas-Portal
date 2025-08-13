@@ -4,7 +4,7 @@ import paramiko
 
 router = APIRouter()
 
-hostname = "ec2-35-154-209-71.ap-south-1.compute.amazonaws.com"
+hostname = "ec2-13-234-31-216.ap-south-1.compute.amazonaws.com"
 username = "ubuntu"
 key_path = "C:/Users/Jayesh/Desktop/data/erpnext.pem"
 docker_container = "pwd-backend-1"
@@ -47,7 +47,7 @@ def get_installed_apps(site_id: str):
 @router.post("/{site_id}/install")
 def install_app(site_id: str, app_name: str):
     try:
-        hostname = "ec2-13-201-133-33.ap-south-1.compute.amazonaws.com"
+        hostname = "ec2-13-234-31-216.ap-south-1.compute.amazonaws.com"
         username = "ubuntu"
         key_path = "C:/Users/Jayesh/Desktop/data/erpnext.pem"
         docker_container = "pwd-backend-1"
@@ -83,7 +83,7 @@ def install_app(site_id: str, app_name: str):
 @router.post("/{site_id}/uninstall")
 def uninstall_app(site_id: str, app_name: str):
     try:
-        hostname = "ec2-13-201-133-33.ap-south-1.compute.amazonaws.com"
+        hostname = "ec2-13-234-31-216.ap-south-1.compute.amazonaws.com"
         username = "ubuntu"
         key_path = "C:/Users/Jayesh/Desktop/data/erpnext.pem"
         docker_container = "pwd-backend-1"

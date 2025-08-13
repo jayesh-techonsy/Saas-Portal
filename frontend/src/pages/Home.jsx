@@ -1,73 +1,250 @@
-import React from "react";
-import { FaTools, FaUserShield, FaGlobe, FaRocket } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+
+import { API_BASE_URL } from "../config/api";
+ import { FiServer,
+  FiShield,
+  FiGlobe,
+  FiZap,
+  FiUsers,
+  FiTruck,
+  FiDatabase,
+  FiArrowRight,
+  FiActivity,
+  FiClock,
+} from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const role = localStorage.getItem("userRole");
+  const userName = localStorage.getItem("userName") || "User";
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const quickActions = [
+    {
+      title: "Manage Tenants",
+      description: "View and manage all tenant sites",
+      icon: FiGlobe,
+      path: "/sites",
+      color: "blue",
+      available: true,
+    },
+    {
+      title: "Fleet Management",
+      description: "Track and manage your vehicle fleet",
+      icon: FiTruck,
+      path: "/fleet",
+      color: "green",
+      available: true,
+    },
+    {
+      title: "Employee Pool",
+      description: "Manage employee information and assignments",
+      icon: FiUsers,
+      path: "/employees",
+      color: "purple",
+      available: true,
+    },
+    {
+      title: "Import Data",
+      description: "Upload and import Excel data",
+      icon: FiDatabase,
+      path: "/import-excel",
+      color: "orange",
+      available: true,
+    },
+  ];
+
+  const features = [
+    {
+      icon: FiServer,
+      title: "Multi-Tenant Architecture",
+      description:
+        "Isolated environments for each client with dedicated resources and security.",
+      color: "blue",
+    },
+    {
+      icon: FiShield,
+      title: "Enterprise Security",
+      description:
+        "Role-based access control with advanced authentication and authorization.",
+      color: "green",
+    },
+    {
+      icon: FiZap,
+      title: "High Performance",
+      description:
+        "Built with modern technologies for lightning-fast response times.",
+      color: "yellow",
+    },
+    {
+      icon: FiActivity,
+      title: "Real-time Monitoring",
+      description:
+        "Live dashboard with real-time updates and comprehensive analytics.",
+      color: "red",
+    },
+  ];
+
+  const getColorClasses = (color) => {
+    const colors = {
+      blue: "bg-blue-50 text-blue-600 border-blue-200",
+      green: "bg-green-50 text-green-600 border-green-200",
+      purple: "bg-purple-50 text-purple-600 border-purple-200",
+      orange: "bg-orange-50 text-orange-600 border-orange-200",
+      yellow: "bg-yellow-50 text-yellow-600 border-yellow-200",
+      red: "bg-red-50 text-red-600 border-red-200",
+    };
+    return colors[color] || colors.blue;
+  };
 
   return (
-    <div className="px-6 py-8 max-w-6xl mx-auto">
-      {/* Original Content */}
-      <h2 className="text-2xl font-bold mb-4">
-        Welcome to the {role === "admin" ? "Admin" : "SaaS"} Dashboard
-      </h2>
-      <p className="text-gray-700 mb-6">
-        Here, you can manage sites, apps, and tenants.
-      </p>
-
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow mb-8">
-        <h3 className="text-xl font-semibold mb-2">You're in control 🚀</h3>
-        <p className="text-sm text-gray-100">
-          Use the dashboard to monitor site activity, manage wallets, and
-          explore available apps with ease.
-        </p>
+    <div className="space-y-6 lg:space-y-8">
+      {/* Welcome Header */}
+      <div className="card p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-2">
+              Welcome back, {userName}! 👋
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 mb-4 lg:mb-0">
+              {role === "admin"
+                ? "Manage your ERPNext infrastructure and monitor all tenant activities."
+                : "Access your ERPNext dashboard and manage your business operations."}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
+            <div className="flex items-center gap-2">
+              <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>{currentTime.toLocaleTimeString()}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>System Online</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Feature Highlights */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition">
-          <FaGlobe className="text-indigo-600 text-3xl mb-3" />
-          <h4 className="text-lg font-semibold text-gray-700 mb-1">
-            Multi-Tenant
-          </h4>
-          <p className="text-gray-500 text-sm">
-            Isolated environments per tenant for security and scalability.
-          </p>
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-800 mb-4 sm:mb-6">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {quickActions.map((action, index) => {
+            const IconComponent = action.icon;
+            return (
+              <Link
+                key={index}
+                to={action.path}
+                className="card-hover p-4 sm:p-6 group"
+              >
+                <div
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${getColorClasses(
+                    action.color
+                  )} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-200`}
+                >
+                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors duration-200 text-sm sm:text-base">
+                  {action.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4 line-clamp-2">
+                  {action.description}
+                </p>
+                <div className="flex items-center text-blue-600 text-xs sm:text-sm font-medium group-hover:gap-2 transition-all duration-200">
+                  <span>Get started</span>
+                  <FiArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition">
-          <FaUserShield className="text-purple-600 text-3xl mb-3" />
-          <h4 className="text-lg font-semibold text-gray-700 mb-1">
-            Role-Based Access
-          </h4>
-          <p className="text-gray-500 text-sm">
-            Separate controls for Admins and Clients.
-          </p>
+      {/* System Features */}
+      <div>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-800 mb-4 sm:mb-6">
+          Platform Features
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon;
+            return (
+              <div key={index} className="card p-4 sm:p-6">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${getColorClasses(
+                      feature.color
+                    )} flex items-center justify-center flex-shrink-0`}
+                  >
+                    <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-slate-800 mb-2 text-sm sm:text-base">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition">
-          <FaTools className="text-green-600 text-3xl mb-3" />
-          <h4 className="text-lg font-semibold text-gray-700 mb-1">
-            Manage Apps
-          </h4>
-          <p className="text-gray-500 text-sm">
-            View and control installed apps on any tenant site.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition">
-          <FaRocket className="text-red-500 text-3xl mb-3" />
-          <h4 className="text-lg font-semibold text-gray-700 mb-1">
-            Fast & Modern
-          </h4>
-          <p className="text-gray-500 text-sm">
-            React + FastAPI makes this dashboard super snappy.
-          </p>
+      {/* System Status */}
+      <div className="card p-4 sm:p-6">
+        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-slate-800 mb-4">
+          System Status
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <FiActivity className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">
+              All Systems Operational
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600">
+              99.9% uptime this month
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <FiServer className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">
+              Server Performance
+            </h3>
+            <p className="text-sm text-slate-600">Optimal response times</p>
+          </div>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <FiShield className="w-8 h-8 text-purple-600" />
+            </div>
+            <h3 className="font-semibold text-slate-800 mb-1">
+              Security Status
+            </h3>
+            <p className="text-sm text-slate-600">All systems secure</p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
+
+// Exporing Expo and then, APIs 
 
 export default Home;
 
@@ -120,7 +297,7 @@ export default Home;
 //   const fetchSites = async () => {
 //     setLoading(true);
 //     try {
-//       const res = await axios.get("http://localhost:8000/api/sites");
+//       const res = await axios.get(`${API_BASE_URL}/api/sites`);
 //       setSiteList(res.data.sites);
 //     } catch (err) {
 //       toast.error("Failed to fetch site list");
@@ -132,7 +309,7 @@ export default Home;
 //   const fetchApps = async () => {
 //     setLoadingApps(true);
 //     try {
-//       const res = await axios.get("http://localhost:8000/api/apps/apps");
+//       const res = await axios.get(`${API_BASE_URL}/api/apps/apps`);
 //       setAppList(res.data.apps);
 //     } catch (err) {
 //       toast.error("Failed to fetch app list");
@@ -144,7 +321,7 @@ export default Home;
 //   const fetchRemoteApps = async () => {
 //     setLoadingApps(true);
 //     try {
-//       const res = await axios.get("http://localhost:8000/api/app/remote-apps");
+//       const res = await axios.get(`${API_BASE_URL}/api/app/remote-apps`);
 //       setRemoteAppList(res.data.apps);
 //     } catch (err) {
 //       toast.error("Failed to fetch app list");
@@ -156,7 +333,7 @@ export default Home;
 //   const handleDropSite = async () => {
 //     setDropping(true);
 //     try {
-//       await axios.post("http://localhost:8000/api/sites/drop-site", {
+//       await axios.post(`${API_BASE_URL}/api/sites/drop-site`, {
 //         site: selectedSite,
 //       });
 //       toast.success(`${selectedSite} dropped successfully`);
@@ -175,7 +352,7 @@ export default Home;
 //     setViewAppsModal(true);
 //     try {
 //       const res = await axios.post(
-//         "http://localhost:8000/api/sites/site-apps",
+//         `${API_BASE_URL}/api/sites/site-apps`,
 //         { site }
 //       );
 //       setSiteApps(res.data.apps || []);
@@ -196,7 +373,7 @@ export default Home;
 //     setCreatingTenant(true);
 //     try {
 //       const fullDomain = `${tenantSubdomain.trim()}.mdm-wassal.shop`;
-//       await axios.post("http://localhost:8000/api/sites/create-tenant", {
+//       await axios.post(`${API_BASE_URL}/api/sites/create-tenant`, {
 //         site: fullDomain,
 //       });
 //       toast.success(`Tenant ${fullDomain} created successfully!`);

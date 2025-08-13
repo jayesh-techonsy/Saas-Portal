@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+import { API_BASE_URL } from "../config/api";
 const GetApps = () => {
   const [installedApps, setInstalledApps] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const GetApps = () => {
       }
 
       // Proceed to fetch data with token if it exists
-      const res = await axios.get("http://localhost:8000/api/apps/apps", {
+      const res = await axios.get(`${API_BASE_URL}/api/apps/apps`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

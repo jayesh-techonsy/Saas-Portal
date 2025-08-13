@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { API_BASE_URL } from "../config/api";
 const ManagePlans = () => {
   const [plans, setPlans] = useState([]);
   const [allApps, setAllApps] = useState([]);
@@ -13,8 +14,8 @@ const ManagePlans = () => {
     const fetchPlansAndApps = async () => {
       try {
         const [plansRes, appsRes] = await Promise.all([
-          axios.get("http://localhost:8000/api/wallets/plans"),
-          axios.get("http://localhost:8000/api/subscription/apps"),
+          axios.get(`${API_BASE_URL}/api/wallets/plans`),
+          axios.get(`${API_BASE_URL}/api/subscription/apps`),
         ]);
 
         setPlans(plansRes.data.plans || []);
