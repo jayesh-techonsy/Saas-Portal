@@ -682,7 +682,7 @@ from datetime import datetime
 from settings import settings
 import base64
 from io import BytesIO
-from PIL import Image
+# from PIL import Image  # Temporarily disabled for Render deployment
 from fastapi.responses import StreamingResponse, FileResponse
 import uuid
 import os

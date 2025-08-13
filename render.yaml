@@ -3,6 +3,7 @@ services:
   - type: web
     name: saas-backend
     runtime: python3
+    pythonVersion: "3.11.9"
     buildCommand: "cd saas-backend && pip install -r requirements-minimal.txt"
     startCommand: "cd saas-backend && chmod +x start.sh && ./start.sh"
     plan: free
@@ -12,6 +13,8 @@ services:
         value: "8000"
       - key: HOST
         value: "0.0.0.0"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: SUPABASE_DB_HOST
         sync: false
       - key: SUPABASE_DB_PORT
