@@ -694,7 +694,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ERP_BASE_URL = settings.ERP_BASE_URL
 ERP_API_TOKEN = settings.ERP_API_TOKEN
 
-UPLOAD_DIR = "/mnt/data"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
